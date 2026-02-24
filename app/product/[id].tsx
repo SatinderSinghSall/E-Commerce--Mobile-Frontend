@@ -1,4 +1,11 @@
-import { View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Product } from "@/assets/constants/types";
@@ -7,7 +14,12 @@ import { useWishlist } from "@/context/WishlistContext";
 import { dummyProducts } from "@/assets/assets";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "@/assets/constants";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { ScrollView } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+
+const { width } = Dimensions.get("window");
 
 export default function ProductDetails() {
   const { id } = useLocalSearchParams();
@@ -16,17 +28,19 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const { addToCart, cartItems } = useCart();
+  const { addToCart, cartItems, itemCount } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const insets = useSafeAreaInsets();
 
   const fetchProduct = async () => {
-    setProduct(dummyProducts.find((product) => product._id === id) as any);
+    const found: any = dummyProducts.find((product) => product._id === id);
+    setProduct(found ?? null);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchProduct();
-  }, []);
+  }, [id]);
 
   if (loading) {
     return (
@@ -68,9 +82,180 @@ export default function ProductDetails() {
 
   const isLiked = isInWishlist(product._id);
 
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      Toast.show({
+        type: "info",
+        text1: "No Size Selected:",
+        text2: "Please select the size from the given size options.",
+      });
+      return;
+    }
+    addToCart(product, selectedSize || "");
+  };
+
   return (
-    <View>
-      <Text>[id]</Text>
+    <View className="flex-1 bg-white">
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* Product Image Carousel: */}
+        <View
+          style={{ paddingTop: insets.top }}
+          className="relative h-[450px] bg-gray-100 mb-6"
+        >
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            scrollEventThrottle={16}
+            onScroll={(e) => {
+              const slide = Math.ceil(
+                e.nativeEvent.contentOffset.x /
+                  e.nativeEvent.layoutMeasurement.width,
+              );
+              setActiveImageIndex(slide);
+            }}
+          >
+            {product.images.map((img, index) => (
+              <Image
+                key={index}
+                source={{ uri: img }}
+                style={{ width: width, height: 450 }}
+                resizeMode="cover" // "contain" for full image
+              />
+            ))}
+          </ScrollView>
+
+          {/* Header Actions: */}
+          <View
+            style={{ top: insets.top + 10 }}
+            className="absolute left-4 right-4 flex-row justify-between items-center z-10"
+          >
+            <TouchableOpacity
+              className="w-10 h-10 bg-white/80 rounded-full items-center justify-center"
+              onPress={() => router.back()}
+            >
+              <Ionicons name="arrow-back" color={COLORS.primary} size={25} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="w-10 h-10 bg-white/80 rounded-full items-center justify-center"
+              onPress={() => toggleWishlist(product)}
+            >
+              <Ionicons
+                name={isLiked ? "heart" : "heart-outline"}
+                color={isLiked ? COLORS.accent : COLORS.primary}
+                size={25}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Pagination Dots: */}
+          <View className="absolute bottom-4 left-0 right-0 flex-row justify-center gap-2">
+            {product.images?.map((_, index) => (
+              <View
+                key={index}
+                className={`h-2 rounded-full ${index === activeImageIndex ? "w-6 bg-primary" : "w-2 bg-gray-300"}`}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Product Information: */}
+        <View className="px-5">
+          {/* Product - Title & Rating: */}
+          <View className="flex-row justify-between items-start mb-2">
+            <Text className="text-2xl font-bold text-primary flex-1 mr-4">
+              {product.name}
+            </Text>
+
+            <View className="flex-row justify-between items-start mb-2">
+              <Ionicons name="star" size={15} color="#FFD700" />
+              <Text className="text-sm font-bold ml-1">4.6</Text>
+              <Text className="text-xs text-secondary ml-1">(85)</Text>
+            </View>
+          </View>
+
+          {/* Product - Price: */}
+          <Text className="text-2xl font-bold text-primary">
+            ₹{product.price.toFixed(2)}
+          </Text>
+
+          {/* Product - Sizing Options: */}
+          {product.sizes && product.sizes.length > 0 && (
+            <>
+              <Text className="text-base font-bold text-primary mb-2 mt-6">
+                Size
+              </Text>
+              <View className="flex-row gap-3 mb-6 flex-wrap">
+                {product.sizes.map((size) => (
+                  <TouchableOpacity
+                    key={size}
+                    onPress={() => setSelectedSize(size)}
+                    className={`w-12 h-12 rounded-full items-center justify-center border ${
+                      selectedSize === size
+                        ? "bg-primary border-primary"
+                        : "bg-white border-gray-300"
+                    }`}
+                  >
+                    <Text
+                      className={`text-sm font-medium ${
+                        selectedSize === size ? "text-white" : "text-primary"
+                      }`}
+                    >
+                      {size}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+
+          {/* Product - Description: */}
+          <Text className="text-base font-bold text-primary mb-2">
+            Description
+          </Text>
+          <Text className="text-secondary leading-6 mb-6">
+            {product.description}
+          </Text>
+        </View>
+      </ScrollView>
+
+      {/* Product - Footer */}
+      <View
+        style={{ paddingBottom: insets.bottom }}
+        className="absolute bottom-0 left-0 right-0 px-4 pt-4 bg-white border-t border-gray-200"
+      >
+        <View className="flex-row items-center">
+          {/* Add to Cart Button */}
+          <TouchableOpacity
+            onPress={handleAddToCart}
+            className="flex-1 bg-primary py-4 rounded-full items-center justify-center flex-row shadow-lg mr-3"
+            activeOpacity={0.8}
+          >
+            <Ionicons name="bag-outline" size={20} color="white" />
+            <Text className="text-white font-bold text-base ml-2">
+              Add to Cart
+            </Text>
+          </TouchableOpacity>
+
+          {/* Cart Icon Button */}
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/cart")}
+            className="w-14 h-14 rounded-full border border-gray-300 items-center justify-center"
+            activeOpacity={0.8}
+          >
+            <Ionicons name="cart-outline" size={22} color="#000" />
+
+            {itemCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-black rounded-full w-5 h-5 items-center justify-center">
+                <Text className="text-white text-[10px] font-bold">
+                  {itemCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
