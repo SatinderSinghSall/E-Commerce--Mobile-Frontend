@@ -21,7 +21,7 @@ export default function Header({
 
   return (
     <>
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white">
+      <View className="flex-row mb-6 items-center justify-between px-4 py-3 bg-white">
         {/* Left Side */}
         <View className="flex-row items-center flex-1">
           {showBack && (
