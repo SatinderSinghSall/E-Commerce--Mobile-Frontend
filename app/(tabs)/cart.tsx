@@ -7,6 +7,7 @@ import Header from "../components/Header";
 import { ScrollView } from "react-native-gesture-handler";
 import EmptyCart from "../components/EmptyCart";
 import CartItem from "../components/CartItem";
+import { COLORS } from "@/assets/constants";
 
 export default function Cart() {
   const { cartItems, cartTotal, removeFromCart, updateQuantity } = useCart();
@@ -35,43 +36,71 @@ export default function Cart() {
             ))}
           </ScrollView>
 
-          <View className="p-4 bg-white rounded-t-3xl shadow-sm">
-            {/* Subtotal: */}
+          <View
+            className="px-5 pt-5 pb-6 bg-white rounded-t-3xl"
+            style={{
+              shadowColor: "#000",
+              shadowOpacity: 0.06,
+              shadowRadius: 16,
+              elevation: 10,
+            }}
+          >
+            {/* FREE Shipping Message */}
+            {cartTotal < 2000 && (
+              <Text className="text-xs text-green-600 mb-3 text-center">
+                Add ₹{(2000 - cartTotal).toFixed(0)} more for FREE delivery 🚚
+              </Text>
+            )}
+
+            {/* Subtotal */}
             <View className="flex-row justify-between mb-2">
-              <Text className="text-secondary">Subtotal:</Text>
-              <Text className="text-primary font-bold">
+              <Text className="text-gray-500">Subtotal</Text>
+              <Text className="text-gray-800 font-medium">
                 ₹{cartTotal.toFixed(2)}
               </Text>
             </View>
 
-            {/* Shipping Details: */}
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-secondary">Shipping:</Text>
-              <Text className="text-primary font-bold">
+            {/* Shipping */}
+            <View className="flex-row justify-between mb-3">
+              <Text className="text-gray-500">Shipping</Text>
+              <Text className="text-gray-800 font-medium">
                 ₹{shippingCost.toFixed(2)}
               </Text>
             </View>
 
-            {/* Border */}
-            <View className="h-[1px] bg-border mb-4 mt-2" />
+            {/* Divider */}
+            <View className="h-[1px] bg-gray-200 mb-4" />
 
-            {/* Total Amount: */}
-            <View className="flex-row justify-between mb-6">
-              <Text className="text-primary font-bold text-lg">
-                Total Amount:
-              </Text>
-              <Text className="text-primary font-bold text-lg">
+            {/* Total */}
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-lg font-semibold text-gray-900">Total</Text>
+              <Text className="text-xl font-bold text-primary">
                 ₹{total.toFixed(2)}
               </Text>
             </View>
 
-            {/* Checkout Button: */}
+            {/* Checkout Button */}
             <TouchableOpacity
-              className="bg-primary py-4 rounded-full items-center"
+              activeOpacity={0.9}
               onPress={() => router.push("/checkout")}
+              className="py-4 rounded-2xl items-center"
+              style={{
+                backgroundColor: COLORS.primary,
+                shadowColor: COLORS.primary,
+                shadowOpacity: 0.25,
+                shadowRadius: 12,
+                elevation: 5,
+              }}
             >
-              <Text className="text-white font-bold text-base">Checkout</Text>
+              <Text className="text-white font-semibold text-lg">
+                Proceed to Checkout
+              </Text>
             </TouchableOpacity>
+
+            {/* Trust message */}
+            <Text className="text-xs text-gray-400 text-center mt-3">
+              Secure checkout • Easy returns • Trusted payments
+            </Text>
           </View>
         </>
       ) : (

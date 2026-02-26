@@ -4,136 +4,173 @@ import {
   Text,
   TouchableOpacity,
   Animated,
-  Dimensions,
   Pressable,
   Image,
+  useWindowDimensions,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, usePathname } from "expo-router";
-
-const { width } = Dimensions.get("window");
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Sidebar({ visible, onClose }: any) {
   const router = useRouter();
   const pathname = usePathname();
-  const slideAnim = useRef(new Animated.Value(-width)).current;
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+
+  // responsive drawer width
+  const drawerWidth = Math.min(width * 0.82, 340);
+
+  const slideAnim = useRef(new Animated.Value(-drawerWidth)).current;
 
   useEffect(() => {
     Animated.spring(slideAnim, {
-      toValue: visible ? 0 : -width,
+      toValue: visible ? 0 : -drawerWidth,
       useNativeDriver: true,
-      damping: 24,
-      stiffness: 120,
+      damping: 25,
+      stiffness: 180,
+      mass: 0.7,
     }).start();
-  }, [visible]);
+  }, [visible, drawerWidth]);
 
   return (
     <View
       pointerEvents={visible ? "auto" : "none"}
-      className="absolute inset-0 z-[999]"
       style={{ elevation: 999 }}
+      className="absolute inset-0 z-[999]"
     >
-      {/* Premium overlay */}
+      {/* Overlay */}
       {visible && (
-        <Pressable onPress={onClose} className="absolute inset-0 bg-black/55" />
+        <Pressable onPress={onClose} className="absolute inset-0 bg-black/40" />
       )}
 
       {/* Drawer */}
       <Animated.View
-        style={{ transform: [{ translateX: slideAnim }] }}
-        className="absolute left-0 top-0 bottom-0 w-[82%] bg-white pt-16 px-6"
+        style={{
+          transform: [{ translateX: slideAnim }],
+          width: drawerWidth,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        }}
+        className="absolute left-0 top-0 bottom-0 bg-[#FAFAFA]"
       >
-        {/* 👤 USER CARD */}
-        <View className="mb-10">
+        {/* HEADER */}
+        <LinearGradient
+          colors={["#111", "#2a2a2a"]}
+          className="px-6 pb-8 pt-4 rounded-br-[36px]"
+        >
           <View className="flex-row items-center">
             <Image
               source={{ uri: "https://i.pravatar.cc/200?img=12" }}
-              className="w-14 h-14 rounded-full"
+              className="w-16 h-16 rounded-full border-2 border-white"
             />
+
             <View className="ml-4">
-              <Text className="text-lg font-semibold text-gray-900">
-                Welcome back,
-              </Text>
-              <Text className="text-sm text-gray-500">Satinder 👋</Text>
+              <Text className="text-white text-lg font-semibold">Welcome</Text>
+              <Text className="text-gray-300 text-sm">Satinder Singh 👋</Text>
             </View>
           </View>
+        </LinearGradient>
+
+        {/* MENU */}
+        <View
+          className="px-5 mt-6"
+          style={{ paddingBottom: insets.bottom + 20 }}
+        >
+          {/* SHOP */}
+          <Text className="text-xs tracking-widest text-gray-400 mb-4 ml-2">
+            SHOP
+          </Text>
+
+          {menuItems.map((item) => {
+            const active = pathname === item.route;
+
+            return (
+              <TouchableOpacity
+                key={item.label}
+                onPress={() => {
+                  onClose();
+                  router.push(item.route);
+                }}
+                activeOpacity={0.85}
+                className={`flex-row items-center py-4 px-4 rounded-2xl mb-2 ${
+                  active ? "bg-white" : ""
+                }`}
+                style={
+                  active
+                    ? {
+                        shadowColor: "#000",
+                        shadowOpacity: 0.05,
+                        shadowRadius: 10,
+                        elevation: 2,
+                      }
+                    : undefined
+                }
+              >
+                {active && (
+                  <View className="w-1.5 h-6 bg-black rounded-full mr-3" />
+                )}
+
+                <Ionicons
+                  name={item.icon}
+                  size={21}
+                  color={active ? "#000" : "#666"}
+                />
+
+                <Text
+                  className={`ml-4 text-[15.5px] ${
+                    active ? "text-black font-semibold" : "text-gray-700"
+                  }`}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+
+          {/* divider */}
+          <View className="h-px bg-gray-200 my-6" />
+
+          {/* ACCOUNT */}
+          <Text className="text-xs tracking-widest text-gray-400 mb-4 ml-2">
+            ACCOUNT
+          </Text>
+
+          <MenuItem icon="settings-outline" label="Settings" />
+          <MenuItem icon="help-circle-outline" label="Help & Support" />
+
+          {/* Logout */}
+          <TouchableOpacity className="flex-row items-center py-4 px-4 rounded-2xl mt-2">
+            <Ionicons name="log-out-outline" size={21} color="#ef4444" />
+            <Text className="ml-4 text-[15.5px] text-red-500 font-medium">
+              Logout
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* SHOP SECTION */}
-        <Text className="text-xs uppercase tracking-widest text-gray-400 mb-3">
-          SHOP
-        </Text>
-
-        {menuItems.map((item) => {
-          const active = pathname === item.route;
-
-          return (
-            <TouchableOpacity
-              key={item.label}
-              onPress={() => {
-                onClose();
-                router.push(item.route);
-              }}
-              activeOpacity={0.7}
-              className={`flex-row items-center py-4 px-3 rounded-xl mb-1 ${
-                active ? "bg-gray-100" : ""
-              }`}
-            >
-              <Ionicons
-                name={item.icon}
-                size={22}
-                color={active ? "#000" : "#444"}
-              />
-              <Text
-                className={`ml-4 text-[16px] ${
-                  active ? "text-black font-semibold" : "text-gray-700"
-                }`}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-
-        {/* Divider */}
-        <View className="h-px bg-gray-200 my-6" />
-
-        {/* SUPPORT SECTION */}
-        <Text className="text-xs uppercase tracking-widest text-gray-400 mb-3">
-          ACCOUNT
-        </Text>
-
-        <TouchableOpacity className="flex-row items-center py-4 px-3 rounded-xl">
-          <Ionicons name="settings-outline" size={22} color="#444" />
-          <Text className="ml-4 text-[16px] text-gray-700">Settings</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="flex-row items-center py-4 px-3 rounded-xl">
-          <Ionicons name="help-circle-outline" size={22} color="#444" />
-          <Text className="ml-4 text-[16px] text-gray-700">Help & Support</Text>
-        </TouchableOpacity>
-
-        {/* Logout */}
-        <TouchableOpacity className="flex-row items-center py-4 px-3 rounded-xl mt-2">
-          <Ionicons name="log-out-outline" size={22} color="#ef4444" />
-          <Text className="ml-4 text-[16px] text-red-500 font-medium">
-            Logout
+        {/* FOOTER */}
+        <View
+          style={{ bottom: insets.bottom + 10 }}
+          className="absolute left-0 right-0 items-center"
+        >
+          <Text className="text-gray-400 text-xs tracking-wide">
+            FOREVER STORE
           </Text>
-        </TouchableOpacity>
-
-        {/* PREMIUM FOOTER */}
-        <View className="absolute bottom-8 left-6 right-6">
-          <View className="h-px bg-gray-200 mb-4" />
-
-          <Text className="text-center text-xs text-gray-400">
-            Forever Store
-          </Text>
-          <Text className="text-center text-[11px] text-gray-400 mt-1">
-            Version 1.0.0
-          </Text>
+          <Text className="text-gray-300 text-[11px] mt-1">Version 1.0.0</Text>
         </View>
       </Animated.View>
     </View>
+  );
+}
+
+function MenuItem({ icon, label }: any) {
+  return (
+    <TouchableOpacity className="flex-row items-center py-4 px-4 rounded-2xl mb-2">
+      <Ionicons name={icon} size={21} color="#666" />
+      <Text className="ml-4 text-[15.5px] text-gray-700">{label}</Text>
+    </TouchableOpacity>
   );
 }
 

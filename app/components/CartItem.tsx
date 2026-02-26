@@ -12,8 +12,17 @@ export default function CartItem({
   const imageUrl = item.product.images[0];
 
   return (
-    <View className="flex-row mb-4 bg-white p-3 rounded-xl">
-      <View className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden mr-3">
+    <View
+      className="flex-row mb-4 bg-white rounded-2xl p-3"
+      style={{
+        shadowColor: "#000",
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        elevation: 2,
+      }}
+    >
+      {/* Product Image */}
+      <View className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden mr-4">
         <Image
           source={{ uri: imageUrl }}
           className="w-full h-full"
@@ -21,35 +30,42 @@ export default function CartItem({
         />
       </View>
 
+      {/* Content */}
       <View className="flex-1 justify-between">
-        {/* Product Details: */}
-        <View className="flex-row justify-between items-start">
-          <View>
-            <Text className="text-primary font-medium text-sm mb-1">
+        {/* Top Row */}
+        <View className="flex-row justify-between">
+          <View className="flex-1 pr-2">
+            <Text
+              numberOfLines={2}
+              className="text-gray-900 font-semibold text-sm mb-1"
+            >
               {item.product.name}
             </Text>
-            <Text className="text-secondary text-xs">Size: {item.size}</Text>
+
+            <Text className="text-gray-400 text-xs">Size: {item.size}</Text>
           </View>
 
-          <TouchableOpacity>
-            <Ionicons
-              name="close-circle-outline"
-              size={20}
-              color="#FF4C38"
-              onPress={onRemove}
-            />
+          {/* Remove Button */}
+          <TouchableOpacity
+            onPress={onRemove}
+            className="p-1"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="close" size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
 
-        {/* Price & Quantity: */}
-        <View className="flex-row justify-between items-center mt-2">
+        {/* Bottom Row */}
+        <View className="flex-row justify-between items-center mt-3">
+          {/* Price */}
           <Text className="text-primary font-bold text-base">
             ₹{item.product.price.toFixed(2)}
           </Text>
 
-          <View className="flex-row items-center bg-surface rounded-full px-2 py-1">
+          {/* Quantity Stepper */}
+          <View className="flex-row items-center bg-gray-100 rounded-full px-2 py-1">
             <TouchableOpacity
-              className="p-1"
+              className="px-2 py-1"
               onPress={() =>
                 onUpdateQuantity && onUpdateQuantity(item.quantity - 1)
               }
@@ -57,12 +73,12 @@ export default function CartItem({
               <Ionicons name="remove" size={16} color={COLORS.primary} />
             </TouchableOpacity>
 
-            <Text className="text-primary font-medium mx-3">
+            <Text className="text-gray-900 font-medium mx-2">
               {item.quantity}
             </Text>
 
             <TouchableOpacity
-              className="p-1"
+              className="px-2 py-1"
               onPress={() =>
                 onUpdateQuantity && onUpdateQuantity(item.quantity + 1)
               }
