@@ -10,22 +10,22 @@ import {
 } from "react";
 
 export type CartItem = {
-  id: String;
-  productId: String;
+  id: string;
+  productId: string;
   product: Product;
   quantity: number;
-  size: String;
+  size: string;
   price: number;
 };
 
 type CartContextType = {
   cartItems: CartItem[];
-  addToCart: (product: Product, size: String) => Promise<void>;
-  removeFromCart: (itemId: String, size: String) => Promise<void>;
+  addToCart: (product: Product, size: string) => Promise<void>;
+  removeFromCart: (itemId: string, size: string) => Promise<void>;
   updateQuantity: (
-    itemId: String,
+    itemId: string,
     quantity: number,
-    size: String,
+    size: string,
   ) => Promise<void>;
   clearCart: () => Promise<void>;
   cartTotal: number;
