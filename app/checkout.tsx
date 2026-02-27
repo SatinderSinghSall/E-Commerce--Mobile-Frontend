@@ -11,7 +11,10 @@ import { useRouter } from "expo-router";
 import { Address } from "@/assets/constants/types";
 import { dummyAddress } from "@/assets/assets";
 import Toast from "react-native-toast-message";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets, // ✅ added
+} from "react-native-safe-area-context";
 import { COLORS } from "@/assets/constants";
 import Header from "./components/Header";
 import { ScrollView } from "react-native-gesture-handler";
@@ -23,6 +26,8 @@ export default function Checkout() {
   const [pageLoading, setPageLoading] = useState(true);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "stripe">("cash");
+
+  const insets = useSafeAreaInsets(); // ✅ added
 
   const shipping = 200;
   const tax = 0;
@@ -80,7 +85,10 @@ export default function Checkout() {
     <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
       <Header title="Checkout" showBack />
 
-      <ScrollView className="flex-1 px-4 mt-4">
+      <ScrollView
+        className="flex-1 px-4 mt-4"
+        contentContainerStyle={{ paddingBottom: 140 }} // ✅ prevents hidden content
+      >
         {/* Address Section */}
         <Text className="text-lg font-bold text-primary mb-4">
           Shipping Address
@@ -122,12 +130,7 @@ export default function Checkout() {
           onPress={() => setPaymentMethod("cash")}
           className={`bg-white p-4 rounded-xl mb-4 shadow-sm flex-row items-center border-2 ${paymentMethod === "cash" ? "border-primary" : "border-transparent"}`}
         >
-          <Ionicons
-            name="cash-outline"
-            size={24}
-            color={COLORS.primary}
-            className="mr-3"
-          />
+          <Ionicons name="cash-outline" size={24} color={COLORS.primary} />
           <View className="ml-3 flex-1">
             <Text className="text-base font-bold text-primary">
               Cash on Delivery
@@ -150,12 +153,7 @@ export default function Checkout() {
           onPress={() => setPaymentMethod("stripe")}
           className={`bg-white p-4 rounded-xl mb-6 shadow-sm flex-row items-center border-2 ${paymentMethod === "stripe" ? "border-primary" : "border-transparent"}`}
         >
-          <Ionicons
-            name="card-outline"
-            size={24}
-            color={COLORS.primary}
-            className="mr-3"
-          />
+          <Ionicons name="card-outline" size={24} color={COLORS.primary} />
           <View className="ml-3 flex-1">
             <Text className="text-base font-bold text-primary">
               Pay with Card
@@ -174,23 +172,37 @@ export default function Checkout() {
         </TouchableOpacity>
       </ScrollView>
 
-      <View className="p-4 bg-white shadow-lg border-t border-gray-100">
+      {/* ✅ Responsive Footer */}
+      <View
+        className="pt-4 px-4 bg-white border-t border-gray-100"
+        style={{
+          paddingBottom: insets.bottom + 12, // ✅ prevents overlap
+          shadowColor: "#000",
+          shadowOpacity: 0.08,
+          shadowRadius: 20,
+          elevation: 12,
+        }}
+      >
         {/* Order Summary */}
         <Text className="text-lg font-bold text-primary mb-4">
           Order Summary
         </Text>
+
         <View className="flex-row justify-between mb-2">
           <Text className="text-secondary">Subtotal</Text>
           <Text className="font-bold">${cartTotal.toFixed(2)}</Text>
         </View>
+
         <View className="flex-row justify-between mb-2">
           <Text className="text-secondary">Shipping</Text>
           <Text className="font-bold">${shipping.toFixed(2)}</Text>
         </View>
+
         <View className="flex-row justify-between mb-4">
           <Text className="text-secondary">Tax</Text>
           <Text className="font-bold">${tax.toFixed(2)}</Text>
         </View>
+
         <View className="flex-row justify-between mb-6">
           <Text className="text-xl font-bold text-primary">Total</Text>
           <Text className="text-xl font-bold text-primary">
@@ -201,7 +213,10 @@ export default function Checkout() {
         <TouchableOpacity
           onPress={handlePlaceOrder}
           disabled={loading}
-          className={`p-4 rounded-xl items-center ${loading ? "bg-gray-400" : "bg-primary"}`}
+          activeOpacity={0.9}
+          className={`p-4 rounded-xl items-center ${
+            loading ? "bg-gray-400" : "bg-primary"
+          }`}
         >
           {loading ? (
             <ActivityIndicator color="white" />
@@ -211,6 +226,7 @@ export default function Checkout() {
         </TouchableOpacity>
       </View>
 
+      {/* PAYMENT MODAL */}
       {/* <Modal
         visible={showGateway}
         onDismiss={() => setShowGateway(false)}

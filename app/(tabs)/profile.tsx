@@ -1,6 +1,12 @@
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
-import React from "react";
-import { dummyUser } from "@/assets/assets";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "../components/Header";
@@ -8,19 +14,48 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS, PROFILE_MENU } from "@/assets/constants";
 import GuestProfile from "../components/GuestProfile";
 import Toast from "react-native-toast-message";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 
 export default function Profile() {
-  const { user } = { user: dummyUser };
   const router = useRouter();
+  const { user, isLoaded } = useUser();
+  const { signOut } = useAuth();
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    router.replace("/sign-in");
-    Toast.show({
-      type: "info",
-      text1: "Logout Status:",
-      text2: "You have been logout successfully.",
-    });
+    try {
+      setLoggingOut(true);
+      await signOut();
+      setShowLogoutModal(false);
+      router.replace("/sign-in");
+
+      Toast.show({
+        type: "success",
+        text1: "Logged out successfully",
+      });
+    } catch {
+      Toast.show({
+        type: "error",
+        text1: "Logout failed",
+      });
+    } finally {
+      setLoggingOut(false);
+    }
   };
+
+  const initials =
+    (user?.firstName?.charAt(0) ?? "") + (user?.lastName?.charAt(0) ?? "");
+
+  // Loading state while Clerk loads
+  if (!isLoaded) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
@@ -31,18 +66,17 @@ export default function Profile() {
         contentContainerStyle={
           !user
             ? { flex: 1, justifyContent: "center", alignItems: "center" }
-            : { paddingTop: 16 }
+            : { paddingTop: 16, paddingBottom: 30 }
         }
       >
         {!user ? (
-          // Guest user Screen:
           <GuestProfile />
         ) : (
           <>
-            {/* Profile Information */}
+            {/* PROFILE HEADER */}
             <View className="items-center mb-10">
               {/* Avatar */}
-              <View className="mb-3">
+              {user.imageUrl ? (
                 <Image
                   source={{ uri: user.imageUrl }}
                   className="w-24 h-24 rounded-full"
@@ -55,26 +89,33 @@ export default function Profile() {
                     elevation: 4,
                   }}
                 />
-              </View>
+              ) : (
+                <View
+                  className="w-24 h-24 rounded-full items-center justify-center"
+                  style={{ backgroundColor: COLORS.primary }}
+                >
+                  <Text className="text-white text-2xl font-bold">
+                    {initials}
+                  </Text>
+                </View>
+              )}
 
               {/* Name */}
-              <Text className="text-2xl font-semibold text-gray-900">
+              <Text className="text-2xl font-semibold text-gray-900 mt-3">
                 {user.firstName} {user.lastName}
               </Text>
 
               {/* Email */}
               <Text className="text-gray-500 text-sm mt-1">
-                {user.emailAddresses[0].emailAddress}
+                {user.primaryEmailAddress?.emailAddress}
               </Text>
 
-              {/* Admin Badge */}
+              {/* ADMIN BADGE */}
               {user.publicMetadata?.role === "admin" && (
                 <TouchableOpacity
                   onPress={() => router.push("/admin")}
                   className="mt-4 px-5 py-2 rounded-full flex-row items-center"
-                  style={{
-                    backgroundColor: COLORS.primary + "15",
-                  }}
+                  style={{ backgroundColor: COLORS.primary + "15" }}
                 >
                   <Ionicons
                     name="shield-checkmark-outline"
@@ -88,7 +129,7 @@ export default function Profile() {
               )}
             </View>
 
-            {/* User Profile Menu: */}
+            {/* PROFILE MENU */}
             <View
               className="bg-white rounded-2xl p-2 mb-6"
               style={{
@@ -108,7 +149,6 @@ export default function Profile() {
                   }`}
                   onPress={() => router.push(item.route as any)}
                 >
-                  {/* Icon container */}
                   <View
                     className="w-11 h-11 rounded-xl items-center justify-center mr-4"
                     style={{ backgroundColor: COLORS.primary + "12" }}
@@ -129,16 +169,67 @@ export default function Profile() {
               ))}
             </View>
 
-            {/* Logout Button: */}
+            {/* LOGOUT BUTTON */}
             <TouchableOpacity
-              onPress={handleLogout}
-              className="bg-red-200 py-4 rounded-2xl items-center"
+              onPress={() => setShowLogoutModal(true)}
+              className="py-4 rounded-2xl items-center"
+              style={{ backgroundColor: "#FEE2E2" }}
             >
               <Text className="text-red-500 font-semibold">Logout</Text>
             </TouchableOpacity>
           </>
         )}
       </ScrollView>
+
+      {/* LOGOUT CONFIRMATION MODAL */}
+      {showLogoutModal && (
+        <View className="absolute inset-0 bg-black/40 items-center justify-center px-6">
+          <View className="bg-white w-full rounded-3xl p-6">
+            {/* Icon */}
+            <View
+              className="w-16 h-16 rounded-full items-center justify-center self-center mb-4"
+              style={{ backgroundColor: "#FEE2E2" }}
+            >
+              <Ionicons name="log-out-outline" size={28} color="#EF4444" />
+            </View>
+
+            {/* Title */}
+            <Text className="text-xl font-semibold text-center text-gray-900">
+              Logout?
+            </Text>
+
+            {/* Message */}
+            <Text className="text-gray-500 text-center mt-2 mb-6">
+              Are you sure you want to logout from your account?
+            </Text>
+
+            {/* Buttons */}
+            <View className="flex-row">
+              <TouchableOpacity
+                onPress={() => setShowLogoutModal(false)}
+                className="flex-1 py-3 rounded-xl items-center mr-2"
+                style={{ backgroundColor: "#F3F4F6" }}
+                disabled={loggingOut}
+              >
+                <Text className="text-gray-700 font-medium">Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleLogout}
+                className="flex-1 py-3 rounded-xl items-center ml-2"
+                style={{ backgroundColor: "#EF4444" }}
+                disabled={loggingOut}
+              >
+                {loggingOut ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white font-medium">Logout</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
