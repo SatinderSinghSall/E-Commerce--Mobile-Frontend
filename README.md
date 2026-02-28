@@ -49,6 +49,40 @@ This app supports **authentication, product browsing, cart & wishlist management
 
 ## 📱 App Screenshots
 
+![Screenshot](<assets/screenshots/Screenshot%20(2635).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2636).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2637).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2638).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2639).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2640).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2641).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2642).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2643).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2644).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2645).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2646).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2647).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2648).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2649).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2650).png>)
+
+![Screenshot](<assets/screenshots/Screenshot%20(2651).png>)
+
 ## 🧱 Tech Stack
 
 ### Core
