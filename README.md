@@ -49,39 +49,39 @@ This app supports **authentication, product browsing, cart & wishlist management
 
 ## 📱 App Screenshots
 
-![Screenshot 2635](<client/assets/screens%20screenshots/Screenshot%20(2635).png>)
+![Screenshot 2635](<client/assets/screens-screenshots/Screenshot%20(2635).png>)
 
-![Screenshot 2636](<client/assets/screens%20screenshots/Screenshot%20(2636).png>)
+![Screenshot 2636](<client/assets/screens-screenshots/Screenshot%20(2636).png>)
 
-![Screenshot 2637](<client/assets/screens%20screenshots/Screenshot%20(2637).png>)
+![Screenshot 2637](<client/assets/screens-screenshots/Screenshot%20(2637).png>)
 
-![Screenshot 2638](<client/assets/screens%20screenshots/Screenshot%20(2638).png>)
+![Screenshot 2638](<client/assets/screens-screenshots/Screenshot%20(2638).png>)
 
-![Screenshot 2639](<client/assets/screens%20screenshots/Screenshot%20(2639).png>)
+![Screenshot 2639](<client/assets/screens-screenshots/Screenshot%20(2639).png>)
 
-![Screenshot 2640](<client/assets/screens%20screenshots/Screenshot%20(2640).png>)
+![Screenshot 2640](<client/assets/screens-screenshots/Screenshot%20(2640).png>)
 
-![Screenshot 2641](<client/assets/screens%20screenshots/Screenshot%20(2641).png>)
+![Screenshot 2641](<client/assets/screens-screenshots/Screenshot%20(2641).png>)
 
-![Screenshot 2642](<client/assets/screens%20screenshots/Screenshot%20(2642).png>)
+![Screenshot 2642](<client/assets/screens-screenshots/Screenshot%20(2642).png>)
 
-![Screenshot 2643](<client/assets/screens%20screenshots/Screenshot%20(2643).png>)
+![Screenshot 2643](<client/assets/screens-screenshots/Screenshot%20(2643).png>)
 
-![Screenshot 2644](<client/assets/screens%20screenshots/Screenshot%20(2644).png>)
+![Screenshot 2644](<client/assets/screens-screenshots/Screenshot%20(2644).png>)
 
-![Screenshot 2645](<client/assets/screens%20screenshots/Screenshot%20(2645).png>)
+![Screenshot 2645](<client/assets/screens-screenshots/Screenshot%20(2645).png>)
 
-![Screenshot 2646](<client/assets/screens%20screenshots/Screenshot%20(2646).png>)
+![Screenshot 2646](<client/assets/screens-screenshots/Screenshot%20(2646).png>)
 
-![Screenshot 2647](<client/assets/screens%20screenshots/Screenshot%20(2647).png>)
+![Screenshot 2647](<client/assets/screens-screenshots/Screenshot%20(2647).png>)
 
-![Screenshot 2648](<client/assets/screens%20screenshots/Screenshot%20(2648).png>)
+![Screenshot 2648](<client/assets/screens-screenshots/Screenshot%20(2648).png>)
 
-![Screenshot 2649](<client/assets/screens%20screenshots/Screenshot%20(2649).png>)
+![Screenshot 2649](<client/assets/screens-screenshots/Screenshot%20(2649).png>)
 
-![Screenshot 2650](<client/assets/screens%20screenshots/Screenshot%20(2650).png>)
+![Screenshot 2650](<client/assets/screens-screenshots/Screenshot%20(2650).png>)
 
-![Screenshot 2651](<client/assets/screens%20screenshots/Screenshot%20(2651).png>)
+![Screenshot 2651](<client/assets/screens-screenshots/Screenshot%20(2651).png>)
 
 ---
 
