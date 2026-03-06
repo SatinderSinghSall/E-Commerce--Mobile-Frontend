@@ -8,9 +8,7 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 
-const publishableKey =
-  process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-  "pk_live_Y2xlcmsuc2F0aW5kZXJwb2V0cnkuY29tJA";
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export default function RootLayout() {
   return (
