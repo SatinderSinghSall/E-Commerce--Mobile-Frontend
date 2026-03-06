@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import "@/global.css";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
-import { ClerkProvider } from "@clerk/clerk-expo";
+import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 
 import { CartProvider } from "@/context/CartContext";
@@ -15,13 +15,19 @@ const publishableKey =
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <CartProvider>
-          <WishlistProvider>
-            <Stack screenOptions={{ headerShown: false }} />
-            <Toast />
-          </WishlistProvider>
-        </CartProvider>
+      <ClerkProvider
+        publishableKey={publishableKey}
+        tokenCache={tokenCache}
+        afterSignOutUrl="/"
+      >
+        <ClerkLoaded>
+          <CartProvider>
+            <WishlistProvider>
+              <Stack screenOptions={{ headerShown: false }} />
+              <Toast />
+            </WishlistProvider>
+          </CartProvider>
+        </ClerkLoaded>
       </ClerkProvider>
     </GestureHandlerRootView>
   );
