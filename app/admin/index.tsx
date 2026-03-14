@@ -9,9 +9,12 @@ import {
 } from "react-native";
 import { dummyAdminStats } from "@/assets/assets";
 import { COLORS, getStatusColor } from "@/assets/constants";
+import { useAuth } from "@clerk/clerk-expo";
+import api from "@/assets/constants/api";
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState({
@@ -23,9 +26,30 @@ export default function AdminDashboard() {
   });
 
   const fetchStats = async () => {
-    setStats(dummyAdminStats as any);
-    setLoading(false);
-    setRefreshing(false);
+    // Dummy Data: Static Data
+    // setStats(dummyAdminStats as any);
+    // setLoading(false);
+    // setRefreshing(false);
+
+    // Data from API / Database: Dynamic Data
+    try {
+      const token = await getToken();
+      const { data } = await api.get("/admin/stats", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (data.success) {
+        setStats(data.data);
+      }
+    } catch (error) {
+      console.log("Admin Stats Error:");
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -59,7 +83,7 @@ export default function AdminDashboard() {
         <View className="flex-row flex-wrap justify-between">
           <StatCard
             label="Total Revenue"
-            value={`$${stats.totalRevenue.toFixed(2)}`}
+            value={`₹${stats.totalRevenue.toFixed(2)}`}
           />
           <StatCard label="Total Orders" value={stats.totalOrders.toString()} />
           <StatCard label="Products" value={stats.totalProducts.toString()} />

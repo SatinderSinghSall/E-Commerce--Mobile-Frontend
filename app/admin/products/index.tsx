@@ -13,30 +13,83 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { dummyProducts } from "@/assets/assets";
 import { COLORS } from "@/assets/constants";
+import { useAuth } from "@clerk/clerk-expo";
+import api from "@/assets/constants/api";
 
 export default function AdminProducts() {
+  const { getToken } = useAuth();
+
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const fetchProducts = async (currentPage = 1) => {
+    // Dummy Data: Static
+    // setProducts(dummyProducts as any);
+    // setLoading(false);
+    // setRefreshing(false);
 
-  const fetchProducts = async () => {
-    setProducts(dummyProducts as any);
-    setLoading(false);
-    setRefreshing(false);
+    // API / Database Data: Dynamic:
+    try {
+      const { data } = await api.get(`/products?page=${currentPage}&limit=10`);
+
+      if (data.success) {
+        setProducts(data.data);
+        setPage(data.pagination.page);
+        setTotalPages(data.pagination.pages);
+      }
+    } catch (error) {
+      console.log("Fetch Products Error:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
-
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchProducts();
+    fetchProducts(page);
   };
 
+  // const performDelete = async (id: string) => {
+  //   setProducts(products.filter((product: any) => product._id !== id) as any);
+  // };
+
   const performDelete = async (id: string) => {
-    setProducts(products.filter((product: any) => product._id !== id) as any);
+    try {
+      const token = await getToken();
+
+      await api.delete(`/products/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setProducts(products.filter((product: any) => product._id !== id) as any);
+    } catch (error) {
+      console.log("Delete Product Error:", error);
+    }
+  };
+
+  const nextPage = () => {
+    if (page < totalPages) {
+      const newPage = page + 1;
+      setPage(newPage);
+      fetchProducts(newPage);
+    }
+  };
+
+  const prevPage = () => {
+    if (page > 1) {
+      const newPage = page - 1;
+      setPage(newPage);
+      fetchProducts(newPage);
+    }
   };
 
   const deleteProduct = async (id: string) => {
@@ -121,7 +174,7 @@ export default function AdminProducts() {
                   Sizes : {product.sizes.join(", ")}
                 </Text>
                 <Text className="text-primary font-bold">
-                  ${product.price.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </Text>
               </View>
 
@@ -145,6 +198,32 @@ export default function AdminProducts() {
           ))
         )}
       </ScrollView>
+
+      <View className="flex-row justify-center items-center py-3 bg-white border-t border-gray-100">
+        <TouchableOpacity
+          onPress={prevPage}
+          disabled={page === 1}
+          className={`px-4 py-2 rounded-full mr-3 ${
+            page === 1 ? "bg-gray-200" : "bg-gray-800"
+          }`}
+        >
+          <Text className="text-white font-medium">Prev</Text>
+        </TouchableOpacity>
+
+        <Text className="text-primary font-semibold">
+          Page {page} / {totalPages}
+        </Text>
+
+        <TouchableOpacity
+          onPress={nextPage}
+          disabled={page === totalPages}
+          className={`px-4 py-2 rounded-full ml-3 ${
+            page === totalPages ? "bg-gray-200" : "bg-gray-800"
+          }`}
+        >
+          <Text className="text-white font-medium">Next</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

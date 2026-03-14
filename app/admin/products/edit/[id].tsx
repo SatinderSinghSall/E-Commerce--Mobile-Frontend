@@ -19,10 +19,13 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { dummyProducts } from "@/assets/assets";
 import { COLORS, CATEGORIES } from "@/assets/constants";
+import api from "@/assets/constants/api";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function EditProduct() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { getToken } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -44,37 +47,46 @@ export default function EditProduct() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const product: any = dummyProducts.find((p) => p._id === id);
-        setName(product.name);
+        const { data } = await api.get(`/products/${id}`);
+
+        if (!data.success) throw new Error("Product not found");
+
+        const product = data.data;
+
+        setName(product.name || "");
         setDescription(product.description || "");
-        setPrice(product.price.toString());
-        setStock(product.stock.toString());
+        setPrice(product.price?.toString() || "");
+        setStock(product.stock?.toString() || "");
         setCategory(
           typeof product.category === "object"
             ? product.category.name
-            : product.category,
+            : product.category || "",
         );
-        setIsFeatured(product.isFeatured);
 
-        if (product.sizes)
+        setIsFeatured(product.isFeatured || false);
+
+        if (product.sizes) {
           setSizes(
             Array.isArray(product.sizes)
               ? product.sizes.join(", ")
               : product.sizes,
           );
+        }
 
-        if (product.images && Array.isArray(product.images)) {
-          setExistingImages(product.images);
-        } else if (product.images) {
-          setExistingImages([product.images]);
+        if (product.images) {
+          setExistingImages(
+            Array.isArray(product.images) ? product.images : [product.images],
+          );
         }
       } catch (error: any) {
         console.error("Failed to fetch product:", error);
+
         Toast.show({
           type: "error",
           text1: "Failed to Fetch Product",
-          text2: error.response?.data?.message || "Something went wrong",
+          text2: "Something went wrong",
         });
+
         router.back();
       } finally {
         setLoading(false);
@@ -122,6 +134,7 @@ export default function EditProduct() {
 
     try {
       setSubmitting(true);
+
       const formData = new FormData();
 
       formData.append("name", name);
@@ -132,14 +145,15 @@ export default function EditProduct() {
       formData.append("isFeatured", String(isFeatured));
       formData.append("sizes", sizes);
 
-      // Append existing images
+      // existing images
       existingImages.forEach((img) => {
         formData.append("existingImages", img);
       });
 
-      // Append new images
+      // new images
       for (const [i, uri] of newImages.entries()) {
         const filename = `new-image-${i}.jpg`;
+
         if (Platform.OS === "web") {
           const blob = await (await fetch(uri)).blob();
           formData.append(
@@ -154,12 +168,30 @@ export default function EditProduct() {
           } as any);
         }
       }
-      router.back();
+
+      const token = await getToken();
+
+      const { data } = await api.put(`/products/${id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!data.success) throw new Error("Update failed");
+
+      Toast.show({
+        type: "success",
+        text1: "Product Updated",
+        text2: "Product updated successfully",
+      });
+
+      router.replace("/admin/products"); // go back to list
     } catch (error: any) {
       console.error("Failed to update product:", error);
+
       Toast.show({
         type: "error",
-        text1: "Failed to Update Product",
+        text1: "Update Failed",
         text2: error.response?.data?.message || "Something went wrong",
       });
     } finally {
@@ -188,7 +220,7 @@ export default function EditProduct() {
         />
 
         <Text className="text-secondary text-xs font-bold mb-1 uppercase">
-          Price ($) *
+          Price (₹) *
         </Text>
         <TextInput
           className="bg-surface p-3 rounded-lg mb-4 text-primary"
