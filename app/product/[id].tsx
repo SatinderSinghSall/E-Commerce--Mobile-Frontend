@@ -18,6 +18,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import api from "@/assets/constants/api";
 
 const { width } = Dimensions.get("window");
 
@@ -33,9 +34,22 @@ export default function ProductDetails() {
   const insets = useSafeAreaInsets();
 
   const fetchProduct = async () => {
-    const found: any = dummyProducts.find((product) => product._id === id);
-    setProduct(found ?? null);
-    setLoading(false);
+    try {
+      setLoading(true);
+
+      const { data } = await api.get(`/products/${id}`);
+
+      if (data.success) {
+        setProduct(data.data);
+      } else {
+        setProduct(null);
+      }
+    } catch (error) {
+      console.log("Product Fetch Error:", error);
+      setProduct(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

@@ -17,6 +17,7 @@ import { CATEGORIES } from "@/assets/constants";
 import CategoryItem from "../components/CategoryItem";
 import { Product } from "@/assets/constants/types";
 import ProductCard from "../components/ProductCard";
+import api from "@/assets/constants/api";
 
 const { width } = Dimensions.get("window");
 
@@ -31,8 +32,19 @@ export default function index() {
   const categories = [{ id: "all", name: "ALL", icon: "grid" }, ...CATEGORIES];
 
   const fetchProducts = async () => {
-    setProducts(dummyProducts);
-    setLoading(false);
+    try {
+      setLoading(true);
+
+      const { data } = await api.get("/products?limit=8");
+
+      if (data.success) {
+        setProducts(data.data);
+      }
+    } catch (error) {
+      console.log("Fetch Products Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -149,7 +161,14 @@ export default function index() {
           </View>
 
           {loading ? (
-            <ActivityIndicator size={"large"} />
+            <View className="py-10 items-center">
+              <ActivityIndicator size="large" />
+              <Text className="text-secondary mt-2">Loading products...</Text>
+            </View>
+          ) : products.length === 0 ? (
+            <View className="py-10 items-center">
+              <Text className="text-secondary">No products available</Text>
+            </View>
           ) : (
             <View className="flex-row justify-between flex-wrap">
               {products.slice(0, 4).map((product) => (

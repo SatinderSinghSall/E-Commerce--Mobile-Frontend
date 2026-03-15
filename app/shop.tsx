@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/assets/constants";
 import { FlatList } from "react-native-gesture-handler";
 import ProductCard from "./components/ProductCard";
+import api from "@/assets/constants/api";
 
 export default function Shop() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -30,20 +31,22 @@ export default function Shop() {
     }
 
     try {
-      const start = (pageNumber - 1) * 10;
-      const end = start + 10;
-      const paginatedData = dummyProducts.slice(start, end);
+      const { data } = await api.get(`/products?page=${pageNumber}&limit=10`);
 
-      if (pageNumber === 1) {
-        setProducts(paginatedData);
-      } else {
-        setProducts((prev) => [...prev, ...paginatedData]);
+      if (data.success) {
+        const newProducts = data.data;
+
+        if (pageNumber === 1) {
+          setProducts(newProducts);
+        } else {
+          setProducts((prev) => [...prev, ...newProducts]);
+        }
+
+        setHasMore(pageNumber < data.pagination.pages);
+        setPage(pageNumber);
       }
-
-      setHasMore(end < dummyProducts.length);
-      setPage(pageNumber);
     } catch (error) {
-      console.error(`Pagination Error: ${error}`);
+      console.log("Shop Fetch Error:", error);
     } finally {
       setLoading(false);
       setLoadingMore(false);

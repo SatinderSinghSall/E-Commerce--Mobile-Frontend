@@ -14,11 +14,35 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { dummyOrders, dummyUser } from "@/assets/assets";
 import { COLORS, getStatusColor } from "@/assets/constants";
+import { useAuth } from "@clerk/clerk-expo";
+import api from "@/assets/constants/api";
+
+type Order = {
+  _id: string;
+  orderStatus: string;
+  createdAt: string;
+  totalAmount: number;
+  user?: {
+    name?: string;
+    email?: string;
+    _id?: string;
+  };
+  shippingAddress?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+  items: any[];
+};
 
 export default function AdminOrders() {
+  const { getToken } = useAuth();
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   // Status Modal State
   const [statusModalVisible, setStatusModalVisible] = useState(false);
@@ -34,14 +58,25 @@ export default function AdminOrders() {
   ];
 
   const fetchOrders = async () => {
-    setOrders(
-      dummyOrders.map((order: any) => ({
-        ...order,
-        user: dummyUser,
-      })) as any,
-    );
-    setLoading(false);
-    setRefreshing(false);
+    try {
+      const token = await getToken();
+      const { data } = await api.get("/orders/admin/all", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (data.success) {
+        setOrders(data.data);
+      }
+    } catch (error) {
+      console.log("Failed to fetch Orders:");
+      console.error(error);
+      Alert.alert("Error", "Failed to load Orders.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -60,15 +95,46 @@ export default function AdminOrders() {
 
   const updateStatus = async (newStatus: string) => {
     if (!selectedOrder) return;
-    setOrders(
-      orders.map((order: any) =>
-        order._id === selectedOrder._id
-          ? { ...order, orderStatus: newStatus }
-          : order,
-      ) as any,
-    );
-    setStatusModalVisible(false);
-    setUpdating(false);
+
+    try {
+      setUpdating(true);
+
+      const token = await getToken();
+
+      const { data } = await api.put(
+        `/orders/${selectedOrder._id}/status`,
+        { orderStatus: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (data.success) {
+        setOrders((prev) =>
+          prev.map((order) =>
+            order._id === selectedOrder._id
+              ? { ...order, orderStatus: newStatus }
+              : order,
+          ),
+        );
+
+        // Get order name (first product)
+        const orderName =
+          selectedOrder.items?.[0]?.product?.name ||
+          selectedOrder.items?.[0]?.name ||
+          "Order";
+
+        Alert.alert(
+          "Order Updated",
+          `${orderName} status updated to "${newStatus}" successfully.`,
+        );
+      }
+
+      setStatusModalVisible(false);
+    } catch (error) {
+      console.log("Failed to update status:", error);
+      Alert.alert("Error", "Failed to update order status");
+    } finally {
+      setUpdating(false);
+    }
   };
 
   if (loading && !refreshing) {
@@ -88,8 +154,20 @@ export default function AdminOrders() {
         }
       >
         {orders.length === 0 ? (
-          <View className="flex-1 justify-center items-center mt-20">
-            <Text className="text-secondary">No orders found</Text>
+          <View className="flex-1 justify-center items-center mt-20 px-6">
+            <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
+
+            <Text className="text-lg font-semibold text-primary mt-4">
+              No Orders Yet
+            </Text>
+
+            <Text className="text-secondary text-center mt-3">
+              There are currently no customer orders in the system.
+            </Text>
+
+            <Text className="text-gray-400 text-center text-xs mt-3">
+              Orders will appear here once customers place purchases.
+            </Text>
           </View>
         ) : (
           orders.map((order: any) => (

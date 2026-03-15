@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/assets/constants";
 import { useRouter } from "expo-router";
 import Sidebar from "./Sidebar";
+import { useCart } from "@/context/CartContext";
 
 export default function Header({
   title,
@@ -15,7 +16,7 @@ export default function Header({
   showLogo,
 }: HeaderProps) {
   const router = useRouter();
-  const { itemCount } = { itemCount: 6 };
+  const { itemCount } = useCart();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

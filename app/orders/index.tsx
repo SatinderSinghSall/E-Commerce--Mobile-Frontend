@@ -15,15 +15,34 @@ import type { Order } from "@/assets/constants/types";
 import { dummyOrders, formatDate } from "@/assets/assets";
 import Header from "../components/Header";
 import { COLORS, getStatusColor } from "@/assets/constants";
+import { useAuth } from "@clerk/clerk-expo";
+import api from "@/assets/constants/api";
 
 export default function Orders() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { getToken } = useAuth();
+
   const fetchOrders = async () => {
-    setOrders(dummyOrders as any[]);
-    setLoading(false);
+    try {
+      const token = await getToken();
+
+      const { data } = await api.get("/orders", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (data.success) {
+        setOrders(data.data);
+      }
+    } catch (error) {
+      console.log("Fetch Orders Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

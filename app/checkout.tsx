@@ -13,12 +13,15 @@ import { dummyAddress } from "@/assets/assets";
 import Toast from "react-native-toast-message";
 import {
   SafeAreaView,
-  useSafeAreaInsets, // ✅ added
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { COLORS } from "@/assets/constants";
 import Header from "./components/Header";
 import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@clerk/clerk-expo";
+import api from "@/assets/constants/api";
+import LottieView from "lottie-react-native";
 
 export default function Checkout() {
   const { cartTotal } = useCart();
@@ -26,22 +29,39 @@ export default function Checkout() {
   const [pageLoading, setPageLoading] = useState(true);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "stripe">("cash");
+  const [successModal, setSuccessModal] = useState(false);
 
-  const insets = useSafeAreaInsets(); // ✅ added
+  const insets = useSafeAreaInsets();
 
   const shipping = 200;
   const tax = 0;
   const total = cartTotal + shipping + tax;
   const router = useRouter();
+  const { getToken } = useAuth();
 
   const fetchAddress = async () => {
-    const addressList = dummyAddress;
+    try {
+      const token = await getToken();
 
-    if (addressList.length > 0) {
-      // Find default or first address:
-      const defaultAddress =
-        addressList.find((a: any) => a.isDefault) || addressList[0];
-      setSelectedAddress(defaultAddress as Address);
+      const { data } = await api.get("/addresses", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (data.success) {
+        const addressList = data.data;
+
+        if (addressList.length > 0) {
+          const defaultAddress =
+            addressList.find((a: any) => a.isDefault) || addressList[0];
+
+          setSelectedAddress(defaultAddress);
+        }
+      }
+    } catch (error) {
+      console.log("Fetch Address Error:", error);
+    } finally {
       setPageLoading(false);
     }
   };
@@ -50,23 +70,55 @@ export default function Checkout() {
     if (!selectedAddress) {
       Toast.show({
         type: "error",
-        text1: "Error: Address Selection",
+        text1: "Error",
         text2: "Please add a shipping address.",
       });
       return;
     }
 
-    if (paymentMethod === "stripe") {
-      return Toast.show({
-        type: "error",
-        text1: "Error: Payment Method",
-        text2:
-          "Stripe payment gateway is not implemented yet. It will be done soon.",
-      });
-    }
+    try {
+      setLoading(true);
 
-    // Cash on Delivery:
-    router.replace("/orders");
+      const token = await getToken();
+
+      const { data } = await api.post(
+        "/orders",
+        {
+          shippingAddress: {
+            street: selectedAddress.street,
+            city: selectedAddress.city,
+            state: selectedAddress.state,
+            zipCode: selectedAddress.zipCode,
+            country: selectedAddress.country,
+          },
+          paymentMethod,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (data.success) {
+        setSuccessModal(true);
+
+        setTimeout(() => {
+          setSuccessModal(false);
+          router.replace("/orders");
+        }, 6000);
+      }
+    } catch (error) {
+      console.log("Create Order Error:", error);
+
+      Toast.show({
+        type: "error",
+        text1: "Order Failed",
+        text2: "Unable to place order",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -172,7 +224,6 @@ export default function Checkout() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* ✅ Responsive Footer */}
       <View
         className="pt-4 px-4 bg-white border-t border-gray-100"
         style={{
@@ -225,6 +276,28 @@ export default function Checkout() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Success Modal: */}
+      <Modal visible={successModal} transparent animationType="fade">
+        <View className="flex-1 justify-center items-center bg-black/40">
+          <View className="bg-white rounded-3xl p-8 items-center w-[80%]">
+            <LottieView
+              source={require("@/assets/animations/order-success.json")}
+              autoPlay
+              loop={false}
+              style={{ width: 150, height: 150 }}
+            />
+
+            <Text className="text-xl font-bold text-primary mt-2">
+              Order Placed!
+            </Text>
+
+            <Text className="text-secondary text-center mt-2">
+              Your order was placed successfully.
+            </Text>
+          </View>
+        </View>
+      </Modal>
 
       {/* PAYMENT MODAL */}
       {/* <Modal

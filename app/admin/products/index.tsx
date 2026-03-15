@@ -137,8 +137,32 @@ export default function AdminProducts() {
         }
       >
         {products.length === 0 ? (
-          <View className="flex-1 justify-center items-center mt-20">
-            <Text className="text-secondary">No products found</Text>
+          <View className="flex-1 justify-center items-center mt-24 px-6">
+            <View className="bg-gray-50 border border-gray-100 rounded-2xl p-8 items-center w-full">
+              <Ionicons name="cube-outline" size={64} color="#9CA3AF" />
+
+              <Text className="text-lg font-semibold text-primary mt-4">
+                No Products Available
+              </Text>
+
+              <Text className="text-secondary text-center mt-2">
+                Your store currently has no products listed.
+              </Text>
+
+              <Text className="text-gray-400 text-xs text-center mt-1">
+                Add products to make them visible to customers.
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => router.push("/admin/products/add")}
+                className="mt-5 bg-gray-800 px-5 py-2.5 rounded-full flex-row items-center"
+              >
+                <Ionicons name="add" size={18} color="white" />
+                <Text className="text-white font-medium ml-1">
+                  Add First Product
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           products.map((product: any) => (

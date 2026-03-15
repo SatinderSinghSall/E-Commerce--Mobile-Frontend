@@ -14,6 +14,9 @@ import type { Address } from "@/assets/constants/types";
 import { dummyAddress } from "@/assets/assets";
 import { COLORS } from "@/assets/constants";
 import Header from "../components/Header";
+import { useAuth } from "@clerk/clerk-expo";
+import api from "@/assets/constants/api";
+import Toast from "react-native-toast-message";
 
 export default function Addresses() {
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -38,9 +41,26 @@ export default function Addresses() {
     fetchAddresses();
   }, []);
 
+  const { getToken } = useAuth();
+
   const fetchAddresses = async () => {
-    setAddresses(dummyAddress as any);
-    setLoading(false);
+    try {
+      setLoading(true);
+
+      const token = await getToken();
+
+      const { data } = await api.get("/addresses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (data.success) {
+        setAddresses(data.data);
+      }
+    } catch (error) {
+      console.log("Fetch Address Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditSearch = (item: Address) => {
@@ -57,12 +77,72 @@ export default function Addresses() {
   };
 
   const handleSaveAddress = async () => {
-    setModalVisible(false);
-    resetForm();
-    fetchAddresses();
+    try {
+      setSubmitting(true);
+
+      const token = await getToken();
+
+      const payload = {
+        type,
+        street,
+        city,
+        state,
+        zipCode,
+        country,
+        isDefault,
+      };
+
+      let res;
+
+      if (isEditing) {
+        res = await api.put(`/addresses/${editingId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        res = await api.post("/addresses", payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+
+      if (res.data.success) {
+        Toast.show({
+          type: "success",
+          text1: isEditing ? "Address Updated" : "Address Added",
+        });
+
+        setModalVisible(false);
+        resetForm();
+        fetchAddresses();
+      }
+    } catch (error) {
+      console.log("Save Address Error:", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDeleteAddress = async (id: string) => {};
+  const handleDeleteAddress = async (id: string) => {
+    try {
+      const token = await getToken();
+
+      const { data } = await api.delete(`/addresses/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (data.success) {
+        Toast.show({
+          type: "success",
+          text1: "Address deleted",
+        });
+
+        fetchAddresses();
+      }
+    } catch (error) {
+      console.log("Delete Address Error:", error);
+    }
+  };
 
   const resetForm = () => {
     setStreet("");
@@ -203,7 +283,8 @@ export default function Addresses() {
               </Text>
               <TextInput
                 className="bg-surface p-4 rounded-xl text-primary mb-4"
-                placeholder="123 Main St"
+                placeholder="123 Main Street...d"
+                placeholderTextColor="#9CA3AF"
                 value={street}
                 onChangeText={setStreet}
               />
@@ -213,7 +294,8 @@ export default function Addresses() {
                   <Text className="text-primary font-medium mb-2">City</Text>
                   <TextInput
                     className="bg-surface p-4 rounded-xl text-primary"
-                    placeholder="New York"
+                    placeholder="Bengaluru"
+                    placeholderTextColor="#9CA3AF"
                     value={city}
                     onChangeText={setCity}
                   />
@@ -222,7 +304,8 @@ export default function Addresses() {
                   <Text className="text-primary font-medium mb-2">State</Text>
                   <TextInput
                     className="bg-surface p-4 rounded-xl text-primary"
-                    placeholder="NY"
+                    placeholder="Karnataka"
+                    placeholderTextColor="#9CA3AF"
                     value={state}
                     onChangeText={setState}
                   />
@@ -236,7 +319,8 @@ export default function Addresses() {
                   </Text>
                   <TextInput
                     className="bg-surface p-4 rounded-xl text-primary"
-                    placeholder="10001"
+                    placeholder="00000"
+                    placeholderTextColor="#9CA3AF"
                     value={zipCode}
                     onChangeText={setZipCode}
                     keyboardType="numeric"
@@ -246,7 +330,8 @@ export default function Addresses() {
                   <Text className="text-primary font-medium mb-2">Country</Text>
                   <TextInput
                     className="bg-surface p-4 rounded-xl text-primary"
-                    placeholder="USA"
+                    placeholder="India"
+                    placeholderTextColor="#9CA3AF"
                     value={country}
                     onChangeText={setCountry}
                   />
